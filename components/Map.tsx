@@ -7,10 +7,20 @@ import {
   Popup,
   useMap,
 } from "react-leaflet";
+import { LatLngExpression } from "leaflet";
 import { useEffect } from "react";
-import "leaflet/dist/leaflet.css";
 
 type Listing = {
+  id: number;
+  title: string;
+  price: number;
+  location: string;
+  lat: number;
+  lng: number;
+  imageUrl: string;
+};
+
+type SelectedListing = {
   id: number;
   title: string;
   price: number;
@@ -18,50 +28,64 @@ type Listing = {
   lng: number;
 };
 
-function FlyTo({ selected }: { selected: Listing | null }) {
+type MapProps = {
+  listings: Listing[];
+  selected: SelectedListing | null;
+  onSelect: (item: SelectedListing) => void;
+};
+
+function FlyToSelected({ selected }: { selected: SelectedListing | null }) {
   const map = useMap();
 
   useEffect(() => {
     if (selected) {
-      map.flyTo([selected.lat, selected.lng], 13);
+      map.flyTo([selected.lat, selected.lng], 15, {
+        duration: 1.2,
+      });
     }
-  }, [selected]);
+  }, [selected, map]);
 
   return null;
 }
 
-export default function Map({
-  listings,
-  selected,
-  onSelect,
-}: {
-  listings: Listing[];
-  selected: Listing | null;
-  onSelect: (item: Listing) => void;
-}) {
+export default function Map({ listings, selected, onSelect }: MapProps) {
+  const center: LatLngExpression = [47.4979, 19.0402];
+
   return (
     <MapContainer
-      center={[47.4979, 19.0402]}
+      center={center}
       zoom={7}
       style={{ height: "100vh", width: "100%" }}
     >
-      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      <TileLayer
+        attribution="&copy; OpenStreetMap contributors"
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
 
-      {/* 🔥 AUTO ZOOM */}
-      <FlyTo selected={selected} />
+      <FlyToSelected selected={selected} />
 
       {listings.map((item) => (
         <Marker
           key={item.id}
           position={[item.lat, item.lng]}
           eventHandlers={{
-            click: () => onSelect(item),
+            click: () =>
+              onSelect({
+                id: item.id,
+                title: item.title,
+                price: item.price,
+                lat: item.lat,
+                lng: item.lng,
+              }),
           }}
         >
           <Popup>
-            <strong>{item.title}</strong>
-            <br />
-            💰 {item.price.toLocaleString()} Ft
+            <div>
+              <h3 style={{ margin: 0 }}>{item.title}</h3>
+              <p style={{ margin: "8px 0" }}>
+                {item.price.toLocaleString()} Ft
+              </p>
+            </div>
           </Popup>
         </Marker>
       ))}
