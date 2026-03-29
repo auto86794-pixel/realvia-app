@@ -64,7 +64,11 @@ export default function Home() {
 
       {/* JOBB OLDAL */}
       <div style={{ width: "60%" }}>
-        <Map listings={listings} selected={selected} />
+        <Map
+          listings={listings}
+          selected={selected}
+          onSelect={(item) => setSelected(item)}
+        />
       </div>
     </main>
   );
